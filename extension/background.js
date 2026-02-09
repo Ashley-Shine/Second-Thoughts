@@ -1,33 +1,14 @@
-// background.js
-
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === "ANALYZE_PROMPT") {
-    const userPrompt = request.data;
-
-    fetch("http://localhost:5000/analyze", {
+chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
+  if (req.action === "ASK_AI") {
+    fetch("http://localhost:3000/ask-ai", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        prompt: userPrompt
-      })
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt: req.prompt })
     })
-      .then((res) => res.json())
-      .then((data) => {
-        sendResponse({
-          aiResponse: data.ai_response,
-          dependencyScore: data.dependency_score,
-          regretLevel: data.regret_level
-        });
-      })
-      .catch((error) => {
-        sendResponse({
-          error: "Backend error"
-        });
-      });
+      .then(r => r.json())
+      .then(d => sendResponse(d))
+      .catch(() => sendResponse(null));
 
-    // IMPORTANT: keep message channel open for async response
     return true;
   }
 });
