@@ -3,12 +3,15 @@ import { getResponse } from "../services/regretLogic.js";
 
 const router = express.Router();
 
-let dependency = 0;
-
 router.post("/", async (req, res) => {
-  dependency++;
-  const result = await getResponse(req.body.prompt, dependency);
-  res.json({ ...result, dependency });
+  const { prompt } = req.body;
+
+  if (!prompt) {
+    return res.status(400).json({ message: "Prompt required" });
+  }
+
+  const result = await getResponse(prompt);
+  res.json(result);
 });
 
 export default router;

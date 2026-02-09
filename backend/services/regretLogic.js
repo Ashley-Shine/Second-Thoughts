@@ -1,15 +1,31 @@
-export async function getResponse(prompt, dependency) {
-  let regret = false;
-  let message = "";
+// regretLogic.js
 
-  if (dependency >= 3) {
-    regret = true;
-    message = "Try attempting this yourself before seeing the answer.";
+const topicMap = {};
+
+function extractTopic(prompt) {
+  return prompt.toLowerCase().slice(0, 40); // simple topic key
+}
+
+export async function getResponse(prompt) {
+  const topic = extractTopic(prompt);
+
+  if (!topicMap[topic]) {
+    topicMap[topic] = 1;
+  } else {
+    topicMap[topic]++;
   }
 
-  // mock AI response for now
+  const dependency = topicMap[topic];
+
+  const regret = dependency >= 3;
+
+  const message = regret
+    ? "Try solving part of it yourself before asking again 🙂"
+    : "";
+
   return {
-    answer: "This is a sample AI response for: " + prompt,
+    answer: `This is a sample AI response for: ${prompt}`,
+    dependency,
     regret,
     message
   };
