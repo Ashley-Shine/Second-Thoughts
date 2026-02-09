@@ -1,7 +1,6 @@
 // regretLogic.js
 
-const topicMap = {};
-const topicMeta = {};
+const topicStats = {};
 
 const conceptualWords = [
   "why", "how", "explain", "derive",
@@ -12,77 +11,77 @@ const learningSignals = [
   "i am new",
   "beginner",
   "learning",
-  "i dont understand",
   "first time",
-  "can you explain again"
+  "trying to learn"
 ];
 
 function extractTopic(prompt) {
-  return prompt
+  const keywords = prompt
     .toLowerCase()
     .replace(/[^\w\s]/g, "")
     .split(" ")
-    .filter(w => w.length > 3)
-    .slice(0, 4)
-    .join("-");
+    .filter(w => w.length > 4)
+    .slice(0, 2);
+
+  return keywords.join("_") || "general";
 }
 
-function isConceptual(prompt) {
-  const lower = prompt.toLowerCase();
-  return conceptualWords.some(word => lower.includes(word));
+function contains(words, prompt) {
+  return words.some(w => prompt.toLowerCase().includes(w));
 }
 
-function isLearning(prompt) {
-  const lower = prompt.toLowerCase();
-  return learningSignals.some(signal => lower.includes(signal));
+function getHumanMessage(dep) {
+  if (dep <= 2) return "";
+
+  if (dep <= 4)
+    return "You’ve revisited this a few times. Try writing your own approach first 🙂";
+
+  if (dep <= 6)
+    return "You may be leaning on AI here. A short pause to think independently could help.";
+
+  if (dep <= 8)
+    return "This reliance pattern often reduces confidence during exams or interviews.";
+
+  return "High dependency detected. Attempt this independently before continuing.";
 }
 
 export async function getResponse(prompt) {
   const topic = extractTopic(prompt);
 
-  if (!topicMap[topic]) {
-    topicMap[topic] = 1;
-    topicMeta[topic] = { firstSeen: Date.now() };
-  } else {
-    topicMap[topic]++;
+  if (!topicStats[topic]) {
+    topicStats[topic] = {
+      usage: 0,
+      dependency: 0
+    };
   }
 
-  const usageCount = topicMap[topic];
-  const conceptual = isConceptual(prompt);
-  const learning = isLearning(prompt);
+  const stats = topicStats[topic];
+  stats.usage++;
 
-  let dependency = 0;
+  const isLearning = contains(learningSignals, prompt);
+  const isConceptual = contains(conceptualWords, prompt);
 
-  // 🟢 Beginner safeguard
-  if (learning || usageCount <= 2) {
-    dependency = 0;
+  // 🟢 Beginner grace period
+  if (isLearning && stats.usage <= 3) {
+    stats.dependency = 0;
   } else {
-    // 🔁 Progressive dependency growth (out of 10)
-    if (usageCount === 3) dependency = 1;
-    else if (usageCount === 4) dependency = 2;
-    else if (usageCount === 5) dependency = 4;
-    else if (usageCount >= 6) {
-      dependency = 4 + (usageCount - 5); // gradual increase
+    // 🔁 Increment only every 2 uses
+    if (stats.usage >= 4 && stats.usage % 2 === 0) {
+      stats.dependency += 1;
     }
 
-    // 🧠 Conceptual reliance adds small weight
-    if (conceptual && usageCount >= 3) {
-      dependency += 1;
+    // 🧠 Conceptual acceleration (very gentle)
+    if (isConceptual && stats.usage >= 6 && stats.usage % 3 === 0) {
+      stats.dependency += 1;
     }
-
-    dependency = Math.min(dependency, 10);
   }
 
-  const regret = dependency >= 7;
-
-  const message = regret
-    ? "Pause for a moment and think about how you would approach this yourself 🙂"
-    : "";
+  stats.dependency = Math.min(stats.dependency, 10);
 
   return {
     answer: `This is a sample AI response for: ${prompt}`,
-    dependency,
-    regret,
-    message
+    dependency: stats.dependency,
+    regret: stats.dependency >= 6,
+    message: getHumanMessage(stats.dependency)
   };
 }
