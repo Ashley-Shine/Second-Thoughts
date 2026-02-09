@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Chat Popup</title>
+
+<style>
+    body {
+        margin: 0;
+        width: 320px;
+        height: 420px;
+        background: black;
+        font-family: Arial, sans-serif;
+        color: #39ff14;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Header */
+    .header {
+        padding: 12px;
+        text-align: center;
+        font-size: 18px;
+        border-bottom: 2px solid #39ff14;
+        text-shadow: 0 0 6px #39ff14;
+    }
+
+    /* Chat container */
+    .chat-container {
+        flex: 1;
+        padding: 10px;
+        overflow-y: auto;
+    }
+
+    /* Message bubbles */
+    .message {
+        padding: 8px 12px;
+        margin: 6px 0;
+        border: 1px solid #39ff14;
+        border-radius: 8px;
+        width: fit-content;
+        max-width: 85%;
+        box-shadow: 0 0 6px #39ff14;
+    }
+
+    .user {
+        margin-left: auto;
+    }
+
+    .bot {
+        margin-right: auto;
+    }
+
+    /* Input area */
+    .input-container {
+        display: flex;
+        border-top: 2px solid #39ff14;
+    }
+
+    input {
+        flex: 1;
+        padding: 10px;
+        background: black;
+        border: none;
+        color: #39ff14;
+        outline: none;
+    }
+
+    input::placeholder {
+        color: #1faa00;
+    }
+
+    button {
+        padding: 10px 15px;
+        background: black;
+        border: none;
+        border-left: 2px solid #39ff14;
+        color: #39ff14;
+        cursor: pointer;
+        text-shadow: 0 0 5px #39ff14;
+    }
+
+    button:hover {
+        background: #001a00;
+    }
+
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: #39ff14;
+        box-shadow: 0 0 5px #39ff14;
+    }
+</style>
+</head>
+
+<body>
+
+<div class="header">Neon Chat</div>
+
+<div class="chat-container" id="chat"></div>
+
+<div class="input-container">
+    <input id="userInput" type="text" placeholder="Ask something..." />
+    <button onclick="sendMessage()">➤</button>
+</div>
+
+<script>
+function sendMessage() {
+    const input = document.getElementById("userInput");
+    const chat = document.getElementById("chat");
+
+    if (!input.value.trim()) return;
+
+    // User message
+    const userMsg = document.createElement("div");
+    userMsg.className = "message user";
+    userMsg.textContent = input.value;
+    chat.appendChild(userMsg);
+
+    // Fake bot reply (placeholder)
+    const botMsg = document.createElement("div");
+    botMsg.className = "message bot";
+    botMsg.textContent = "Thinking...";
+    chat.appendChild(botMsg);
+
+    chat.scrollTop = chat.scrollHeight;
+    input.value = "";
+}
+</script>
+
+</body>
+</html>
